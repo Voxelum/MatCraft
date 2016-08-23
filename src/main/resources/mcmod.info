@@ -1,0 +1,16 @@
+[
+{
+  "modid": "mathcraft",
+  "name": "Mathcraft Tools",
+  "description": "A Minecraft 1.9 mod for math applications in Minecraft",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["ROZOALEX"],
+  "credits": "Notch, Cpw, ci010, etc",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
