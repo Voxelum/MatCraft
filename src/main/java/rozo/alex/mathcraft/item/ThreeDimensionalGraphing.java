@@ -1,8 +1,6 @@
 package rozo.alex.mathcraft.item;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * This class takes a range of x and y
@@ -12,21 +10,22 @@ import java.util.Stack;
  * x and y values are all integers
  */
 public class ThreeDimensionalGraphing {
-    protected int[] ranges;
+    private int[] ranges;
     //upper and lower bound of x and y
     private String infixOperations;
     //just for record
     private String[] postfixOperations;
     //The operations in post fix order
-    protected boolean is3D;
+    private boolean is3D;
     //do we have 2 parameters or one
     private Queue<Integer> Z_values;
 
-    protected double stepLength=1;
+    private HashSet<Character> legalChars;
 
-    protected final String discription="The class takes 5 parameters. The first is a function of x and y.\nThe second and third are the lower and upper limits of x.\nThe 4th and 5th are the lower and upper limit of y.\nThe class will generate a list of x,y,z values from the function. ";
 
-    protected double  approximateLimitOfUndefine=0.001;
+    private final String discription="The class takes 5 parameters. The first is a function of x and y.\nThe second and third are the lower and upper limits of x.\nThe 4th and 5th are the lower and upper limit of y.\nThe class will generate a list of x,y,z values from the function. ";
+
+    private double  approximateLimitOfUndefine=0.001;
 
 
 
@@ -38,8 +37,10 @@ public class ThreeDimensionalGraphing {
     }
 
     public ThreeDimensionalGraphing(String operations,double x_lower,double x_upper,double y_lower,double y_upper){
-        postfixOperations=makePostfixOperation(operations);
-        ranges = new int[4];
+        this.legalChars=setLegalChars();
+        operations=simpleStringPolish(operations);
+        this.postfixOperations=makePostfixOperation(operations);
+        this.ranges = new int[4];
         if(x_lower>x_upper){
             double temp=x_lower;
             x_lower=x_upper;
@@ -59,8 +60,55 @@ public class ThreeDimensionalGraphing {
 
     }
 
+    private String simpleStringPolish(String operations) {
+        if (operations==null){
+            System.out.println("operationNullError");
+            return null;
+        }//if null, return null
+
+        operations=operations.replaceAll(" ","");
+        //get rid of spaces
+
+        operations=operations.toLowerCase();
+        //not case sensitive
+
+        return operations;
+    }
+
+    private HashSet<Character> setLegalChars() {
+        HashSet<Character> legalchars= new HashSet<Character>();
+        legalchars.add('x');
+        legalchars.add('y');
+        legalchars.add('z');
+        legalchars.add('e');
+        legalchars.add('l');
+        legalchars.add('n');
+        legalchars.add('+');
+        legalchars.add('-');
+        legalchars.add('*');
+        legalchars.add('/');
+        legalchars.add('^');
+        legalchars.add('(');
+        legalchars.add(')');
+        legalchars.add('.');
+        legalchars.add('9');
+        legalchars.add('0');
+        legalchars.add('8');
+        legalchars.add('7');
+        legalchars.add('6');
+        legalchars.add('5');
+        legalchars.add('4');
+        legalchars.add('3');
+        legalchars.add('2');
+        legalchars.add('1');
+
+        return legalchars;
+    }
+
 
     public ThreeDimensionalGraphing(String operations,double x_lower,double x_upper){
+        legalChars=setLegalChars();
+        operations=simpleStringPolish(operations);
         postfixOperations=makePostfixOperation(operations);
         ranges = new int[2];
         if(x_lower>x_upper){
@@ -82,17 +130,12 @@ public class ThreeDimensionalGraphing {
     //some checkes for illegal expression are done
     //if there is an illegal expression, the method will return null, and PRINT the error.
     //no exceptions will be thrown
-    protected String[] makePostfixOperation(String operations) {
+    private String[] makePostfixOperation(String operations) {
+
         if (operations==null){
-            System.out.println("operationNullError");
             return null;
-        }//if null, return null
+        }
 
-        operations=operations.replaceAll(" ","");
-        //get rid of spaces
-
-        operations=operations.toLowerCase();
-        //not case sensitive
         this.infixOperations=operations;
         //handle numbers with more than 2 digits
         Stack<String> tempCh = new Stack<String>();
@@ -234,13 +277,7 @@ public class ThreeDimensionalGraphing {
 
     //see if the given char a legal char
     private boolean containsIllegalChars(char ch) {
-        if(
-                (ch >= '0' && ch <= '9')|| ch=='x' || ch=='y'||
-                        ch=='.'||ch=='+'||ch=='-'||ch=='*'|| ch=='/'||ch=='('
-                        ||ch==')'||ch=='^'||ch=='e'){//legal chars
-            return false;
-        }
-        return true;
+        return (!legalChars.contains(ch));
 
     }
 
@@ -265,7 +302,7 @@ public class ThreeDimensionalGraphing {
 
 
     //Do the calculation
-    public Queue<Integer> generateZ(){
+    private Queue<Integer> generateZ(){
         if(is3D){
             return generateZ_XY();
         }else {
