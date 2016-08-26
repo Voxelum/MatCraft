@@ -3,10 +3,8 @@ package rozo.alex.mathcraft.item;
 import net.minecraft.block.BlockStandingSign;
 import net.minecraft.block.BlockWallSign;
 import net.minecraft.block.state.IBlockState;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemSign;
 import net.minecraft.item.ItemStack;
@@ -21,6 +19,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import rozo.alex.mathcraft.creativetab.CreativeTabsLoader;
+
 
 import java.util.Queue;
 
@@ -132,12 +131,14 @@ public class ItemMatCraft extends ItemSign{
 
     }
 
+    //The method actually does the work
     private void doGraph(String[] inps, World world, BlockPos pos , EntityPlayer playerIn) {
         Double x_lower=toBountry(inps[1],true);
         Double x_upper=toBountry(inps[1],false);
         Double z_lower=toBountry(inps[2],true);
         Double z_upper=toBountry(inps[2],false);
-        int [] numberOfParameters = findNumberOfParameters(inps[0]);
+
+        int [] numberOfParameters = findNumberOfParameters(inps[0]);//potential to upgrade to parametric
 
         if(numberOfParameters==null ){//check number of brakets
             System.out.println("numberOfBraketsError");
@@ -146,19 +147,31 @@ public class ItemMatCraft extends ItemSign{
         }                             //check number of brakets
 
         //Start
+
         ThreeDimensionalGraphing TDG;
         Queue<Integer> resultsCoordinates;
         inps[0]=inps[0].replaceAll("z","y");
         inps[0]=inps[0].replaceAll("Z","y");
 
+        long startTime = System.currentTimeMillis();
         if(x_lower!=null && x_upper!=null && z_lower!=null && z_upper!=null) {
             TDG = new ThreeDimensionalGraphing(inps[0], x_lower, x_upper, z_lower, z_upper);
+            long endTime   = System.currentTimeMillis();
+            playerIn.addChatComponentMessage(new TextComponentString("Generating z values takes "+(endTime - startTime)+"ms"));
         }else if ((x_lower!=null && x_upper!=null)  ){
             TDG = new ThreeDimensionalGraphing(inps[0], x_lower, x_upper, 0, 0);
+            long endTime   = System.currentTimeMillis();
+            playerIn.addChatComponentMessage(new TextComponentString("Generating z values takes "+(endTime - startTime)+"ms"));
+
         }else if(z_lower!=null && z_upper!=null){
             TDG = new ThreeDimensionalGraphing(inps[0], 0, 0,z_lower, z_upper);
+            long endTime   = System.currentTimeMillis();
+            playerIn.addChatComponentMessage(new TextComponentString("Generating z values takes "+(endTime - startTime)+"ms"));
+
         }else if(x_lower==null && x_upper==null && z_lower==null && z_upper==null){
             TDG = new ThreeDimensionalGraphing(inps[0]);
+            long endTime   = System.currentTimeMillis();
+            playerIn.addChatComponentMessage(new TextComponentString("Done calculations. Takes "+(endTime - startTime)+"ms"));
         } else{
             playerIn.addChatComponentMessage(new TextComponentString("Not a Valid Domain For Graphing."));
             return;
@@ -168,15 +181,22 @@ public class ItemMatCraft extends ItemSign{
             playerIn.addChatComponentMessage(new TextComponentString("Fail to Graph. The expression of the function might be wrong."));
         }else{
             IBlockState newState=determineTexture(inps[3], playerIn);//determine the texture of the graph
-                                                           //what blocks will be used
-            resultsCoordinates=TDG.getResults();
+            //what blocks will be used
+
+
+
+
+
+           resultsCoordinates=TDG.getResults();
             System.out.println(TDG.toString());
-            playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
-            playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( "+String.valueOf(pos.getX())+", "+String.valueOf(pos.getY())+", "+String.valueOf(pos.getZ())+" )."));
-            for (int i=0;i<resultsCoordinates.size();i++){
+           playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
+           playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( "+String.valueOf(pos.getX())+", "+String.valueOf(pos.getY())+", "+String.valueOf(pos.getZ())+" )."));
+            startTime = System.currentTimeMillis();
+            int counter=0;
+            while (!resultsCoordinates.isEmpty()){
                 int newY=pos.getY()+resultsCoordinates.poll();
                 if (newY>255){
-                    newY=255;
+                   newY=255;
                 }else if(newY<=1){
                     newY=1;
                 }//enforce the coordinates to be inside the world
@@ -185,8 +205,14 @@ public class ItemMatCraft extends ItemSign{
                 System.out.println("("+newX+","+newY+","+newZ+")\n" );
                 BlockPos newPos=new BlockPos(newX,newY,newZ);
                 world.setBlockState(newPos, newState, 2);
+                counter++;
             }
-            playerIn.addChatComponentMessage(new TextComponentString("Done Graphing."));
+
+            long et  = System.currentTimeMillis();
+            playerIn.addChatComponentMessage(new TextComponentString("Done Graphing. Takes "+(et - startTime)+"ms"));
+            playerIn.addChatComponentMessage(new TextComponentString(counter+" Blocks Added."+resultsCoordinates.size()));
+            /////
+
         }
     }
 
@@ -325,6 +351,8 @@ public class ItemMatCraft extends ItemSign{
         }
         return(s.replaceAll(" ","").equals(""));
     }
+
+
 
 
 }

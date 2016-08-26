@@ -23,7 +23,7 @@ public class ThreeDimensionalGraphing {
     private HashSet<Character> legalChars;
 
 
-    private final String discription="The class takes 5 parameters. The first is a function of x and y.\nThe second and third are the lower and upper limits of x.\nThe 4th and 5th are the lower and upper limit of y.\nThe class will generate a list of x,y,z values from the function. ";
+    //private final String discription="The class takes 5 parameters. The first is a function of x and y.\nThe second and third are the lower and upper limits of x.\nThe 4th and 5th are the lower and upper limit of y.\nThe class will generate a list of x,y,z values from the function. ";
 
     private double  approximateLimitOfUndefine=0.001;
 
@@ -60,6 +60,8 @@ public class ThreeDimensionalGraphing {
 
     }
 
+    //this method clears all spaces and converts everything to lower cases
+    //and assign field infixOperation to the polished operation
     private String simpleStringPolish(String operations) {
         if (operations==null){
             System.out.println("operationNullError");
@@ -72,9 +74,13 @@ public class ThreeDimensionalGraphing {
         operations=operations.toLowerCase();
         //not case sensitive
 
+        this.infixOperations=operations;
+        //store the polished operation
+
         return operations;
     }
 
+    //This method add all legal characters in to a hash set
     private HashSet<Character> setLegalChars() {
         HashSet<Character> legalchars= new HashSet<Character>();
         legalchars.add('x');
@@ -101,11 +107,10 @@ public class ThreeDimensionalGraphing {
         legalchars.add('3');
         legalchars.add('2');
         legalchars.add('1');
-
         return legalchars;
     }
 
-
+    //2d version, not often used
     public ThreeDimensionalGraphing(String operations,double x_lower,double x_upper){
         legalChars=setLegalChars();
         operations=simpleStringPolish(operations);
@@ -122,10 +127,6 @@ public class ThreeDimensionalGraphing {
         Z_values=generateZ();
     }
 
-    public ThreeDimensionalGraphing() {
-    }
-
-
     //The expression of function is organized in the method
     //some checkes for illegal expression are done
     //if there is an illegal expression, the method will return null, and PRINT the error.
@@ -133,10 +134,10 @@ public class ThreeDimensionalGraphing {
     private String[] makePostfixOperation(String operations) {
 
         if (operations==null){
+            System.out.println("nullInputError");
             return null;
-        }
+        }//stop if inp is null
 
-        this.infixOperations=operations;
         //handle numbers with more than 2 digits
         Stack<String> tempCh = new Stack<String>();
         int operationCounter =0; //count number of operations
@@ -178,7 +179,20 @@ public class ThreeDimensionalGraphing {
                         //make it 6*x+5*y
                     }
                 }
-                tempCh.push(String.valueOf(ch));
+
+                if(ch == '-' && (isNumeric(tempCh.peek())||isLegalParameter(String.valueOf(ch)))){
+                    tempCh.push("-");
+                }else if(ch=='-') {
+                    tempCh.push("0");
+                    tempCh.push("-");
+                }else{
+                    tempCh.push(String.valueOf(ch));
+                    //handle minus sign
+                }
+
+
+
+
                 if(i!=0){
                     operationCounter++;
                 }
@@ -197,6 +211,8 @@ public class ThreeDimensionalGraphing {
             }
         }
         //handle numbers with more than 2 digits
+
+
         return toPostFix(tempCh);
 
     }
@@ -379,9 +395,9 @@ public class ThreeDimensionalGraphing {
         return (int)Math.round(Double.parseDouble(tempCalculation.pop()));
     }
 
-    public void printDiscreption(){
-        System.out.println(discription);
-    }
+    //public void printDiscreption(){
+    //    System.out.println(discription);
+    //}
 
     public String toString(){
         Queue<Integer> copyZ_values=new LinkedList<Integer>();
