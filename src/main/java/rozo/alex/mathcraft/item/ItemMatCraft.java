@@ -21,6 +21,7 @@ import net.minecraft.world.World;
 import rozo.alex.mathcraft.creativetab.CreativeTabsLoader;
 
 
+import java.util.LinkedList;
 import java.util.Queue;
 
 
@@ -124,27 +125,107 @@ public class ItemMatCraft extends ItemSign{
             playerIn.addChatComponentMessage(new TextComponentString(tileentity.signText[i].getUnformattedText() ));
         }
         if(!isEmpty(inps)){
-            doGraph(inps,world,pos,playerIn);
+            int [] numberOfParameters = findNumberOfParameters(inps[0]);//potential to upgrade to parametric
+            if(numberOfParameters==null ){//check number of brakets
+                System.out.println("numberOfBraketsError or parametricError");
+                playerIn.addChatComponentMessage(new TextComponentString("Not Valid For Graphing."));
+                return;
+            }                             //check number of brakets
+
+            if(numberOfParameters[2]!=0){
+                doParametrized(inps, world, pos , playerIn);
+            }else {
+                doGraph(inps, world, pos, playerIn);
+            }
         }else{
             playerIn.addChatComponentMessage(new TextComponentString("Not a Valid Input For Graphing."));
         }
 
     }
 
+    private void doParametrized(String[] inps, World world, BlockPos pos, EntityPlayer playerIn) {
+        Queue<Integer> Xvalues;
+        Queue<Integer> Yvalues;
+        Queue<Integer> Zvalues;
+        Double t_start=toBountry(inps[3],true);
+        Double t_end=toBountry(inps[3],false);
+        IBlockState newState;
+
+        if(t_start!=null && t_end!=null) {
+            Xvalues = inps[0].replaceAll(" ","").equals("")?makeZeros(t_start, t_end):new ThreeDimensionalGraphing(inps[0], t_start, t_end).getResults();
+            Yvalues = inps[1].replaceAll(" ","").equals("")?makeZeros(t_start, t_end):new ThreeDimensionalGraphing(inps[1], t_start, t_end).getResults();
+            Zvalues = inps[2].replaceAll(" ","").equals("")?makeZeros(t_start, t_end):new ThreeDimensionalGraphing(inps[2], t_start, t_end).getResults();
+            newState=Blocks.iron_block.getDefaultState();
+        }else{
+            Xvalues = inps[0].replaceAll(" ","").equals("")?makeZeros(0, 20):new ThreeDimensionalGraphing(inps[0], 0, 20).getResults();
+            Yvalues = inps[1].replaceAll(" ","").equals("")?makeZeros(0, 20):new ThreeDimensionalGraphing(inps[1], 0, 20).getResults();
+            Zvalues = inps[2].replaceAll(" ","").equals("")?makeZeros(0, 20):new ThreeDimensionalGraphing(inps[2], 0, 20).getResults();
+            newState=determineTexture(inps[3], playerIn);//determine the texture of the graph
+        }
+
+        if(Xvalues==null||Yvalues==null||Zvalues==null){
+            playerIn.addChatComponentMessage(new TextComponentString("Not void for Graphing"));
+            return;
+        }
+
+
+        playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
+        playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( "+String.valueOf(pos.getX())+", "+String.valueOf(pos.getY())+", "+String.valueOf(pos.getZ())+" )."));
+        long startTime = System.currentTimeMillis();
+        int counter=0;
+        while (!Xvalues.isEmpty()){
+            int newY=pos.getY()+Yvalues.poll();
+            int newX=pos.getX()+Xvalues.poll();;
+            int newZ=pos.getZ()+Zvalues.poll();;
+
+            Yvalues.poll();
+            Xvalues.poll();;
+            Zvalues.poll();;
+
+            if (newY>255){
+                newY=255;
+            }else if(newY<=1){
+                newY=1;
+            }//enforce the coordinates to be inside the world
+
+            System.out.println("("+newX+","+newY+","+newZ+")\n" );
+            BlockPos newPos=new BlockPos(newX,newY,newZ);
+            world.setBlockState(newPos, newState);
+            counter++;
+        }
+
+        long et  = System.currentTimeMillis();
+        playerIn.addChatComponentMessage(new TextComponentString("Done Graphing. Takes "+(et - startTime)+"ms"));
+        playerIn.addChatComponentMessage(new TextComponentString(counter+" Blocks Added."));
+        /////
+
+
+    }
+
+    private Queue<Integer> makeZeros(double t_start, double t_end) {
+        Queue<Integer> zeros=new LinkedList<Integer>();
+        if(t_start>t_end){
+            double temp=t_start;
+            t_start=t_end;
+            t_end=temp;
+        }
+        int ts = (int)Math.ceil(t_start);
+        int te = (int)t_end;
+        for(int i=ts;i<=te;i++){
+            zeros.add(0);
+        }
+        return zeros;
+    }
+
     //The method actually does the work
     private void doGraph(String[] inps, World world, BlockPos pos , EntityPlayer playerIn) {
+
+
         Double x_lower=toBountry(inps[1],true);
         Double x_upper=toBountry(inps[1],false);
         Double z_lower=toBountry(inps[2],true);
         Double z_upper=toBountry(inps[2],false);
 
-        int [] numberOfParameters = findNumberOfParameters(inps[0]);//potential to upgrade to parametric
-
-        if(numberOfParameters==null ){//check number of brakets
-            System.out.println("numberOfBraketsError");
-            playerIn.addChatComponentMessage(new TextComponentString("Not Valid For Graphing."));
-            return;
-        }                             //check number of brakets
 
         //Start
 
@@ -183,12 +264,8 @@ public class ItemMatCraft extends ItemSign{
             IBlockState newState=determineTexture(inps[3], playerIn);//determine the texture of the graph
             //what blocks will be used
 
-
-
-
-
            resultsCoordinates=TDG.getResults();
-            System.out.println(TDG.toString());
+            //System.out.println(TDG.toString());
            playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
            playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( "+String.valueOf(pos.getX())+", "+String.valueOf(pos.getY())+", "+String.valueOf(pos.getZ())+" )."));
             startTime = System.currentTimeMillis();
@@ -204,7 +281,7 @@ public class ItemMatCraft extends ItemSign{
                 int newZ=pos.getZ()+resultsCoordinates.poll();
                 System.out.println("("+newX+","+newY+","+newZ+")\n" );
                 BlockPos newPos=new BlockPos(newX,newY,newZ);
-                world.setBlockState(newPos, newState, 2);
+                world.setBlockState(newPos, newState);
                 counter++;
             }
 
@@ -216,10 +293,10 @@ public class ItemMatCraft extends ItemSign{
         }
     }
 
+    //Determine the which block is going to be used
     private IBlockState determineTexture(String inp, EntityPlayer playerIn) {
 
         inp=inp.toLowerCase();
-
 
         if(inp.equals("black")||inp.equals("dark")||inp.equals("obsidian")){
             playerIn.addChatComponentMessage(new TextComponentString("Apply Obsidian Blocks."));
@@ -272,7 +349,7 @@ public class ItemMatCraft extends ItemSign{
     }
 
     private int[] findNumberOfParameters(String inps) {
-        int[] nofP =new int[2];
+        int[] nofP =new int[3];
         int braketCounter=0;
         for(int i=0;i<inps.length();i++){
             if(inps.charAt(i)=='('){
@@ -288,11 +365,16 @@ public class ItemMatCraft extends ItemSign{
                     break;
                 case 'Z':case'z':nofP[1]++;
                     break;
-
+                case 't':case'T':nofP[2]++;
             }
 
         }
-        if(braketCounter==0) {
+
+        if(nofP[2]!=0 &&(nofP[0]!=0||nofP[1]!=0)){
+            return null;
+        }
+
+        if(braketCounter==0 ) {
             return nofP;
         }else{
             return null;

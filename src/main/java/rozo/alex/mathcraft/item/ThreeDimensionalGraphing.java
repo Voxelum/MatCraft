@@ -64,7 +64,9 @@ public class ThreeDimensionalGraphing {
     //and assign field infixOperation to the polished operation
     private String simpleStringPolish(String operations) {
         if (operations==null){
+            if(is3D){
             System.out.println("operationNullError");
+            }//null inp is only an error if it is not parametric
             return null;
         }//if null, return null
 
@@ -88,6 +90,7 @@ public class ThreeDimensionalGraphing {
         legalchars.add('z');
         legalchars.add('e');
         legalchars.add('l');
+        legalchars.add('t');
         legalchars.add('n');
         legalchars.add('+');
         legalchars.add('-');
@@ -111,18 +114,18 @@ public class ThreeDimensionalGraphing {
     }
 
     //2d version, not often used
-    public ThreeDimensionalGraphing(String operations,double x_lower,double x_upper){
+    public ThreeDimensionalGraphing(String operations,double t_start,double t_end){
         legalChars=setLegalChars();
         operations=simpleStringPolish(operations);
         postfixOperations=makePostfixOperation(operations);
         ranges = new int[2];
-        if(x_lower>x_upper){
-            double temp=x_lower;
-            x_lower=x_upper;
-            x_upper=temp;
+        if(t_start>t_end){
+            double temp=t_start;
+            t_start=t_end;
+            t_end=temp;
         }
-        ranges[0] = (int)Math.ceil(x_lower);
-        ranges[1] = (int)x_upper;
+        ranges[0] = (int)Math.ceil(t_start);
+        ranges[1] = (int)t_end;
         is3D=false;
         Z_values=generateZ();
     }
@@ -276,7 +279,7 @@ public class ThreeDimensionalGraphing {
     //helper methods
     //see if the given string a legal parameter
     private boolean isLegalParameter(String temp){
-        if(temp.equals("x")||temp.equals("y")||temp.equals("e")){
+        if(temp.equals("x")||temp.equals("y")||temp.equals("e")||temp.equals("t")){
             return true;
         }
         return false;
@@ -343,13 +346,13 @@ public class ThreeDimensionalGraphing {
 
     //2d situation
     private Queue<Integer>  generateZ_X(){
-        Queue<Integer> zx =new LinkedList<Integer>();
+        Queue<Integer> zt =new LinkedList<Integer>();
         Stack<String> operationStack=new Stack<String>();
         for (int x=ranges[0];x<=ranges[1];x++){
-            zx.add(functionZ(x,0));
-            zx.add(x);
+            zt.add(functionZ(x,0));
+            zt.add(x);
         }
-        return zx;
+        return zt;
     }
 
     //The z(x,y)
@@ -359,7 +362,7 @@ public class ThreeDimensionalGraphing {
         for(int i=0;i<postfixOperations.length;i++){
             if(isNumeric(postfixOperations[i])){
                 tempCalculation.push(postfixOperations[i]);
-            }else if(postfixOperations[i].equals("x")){
+            }else if(postfixOperations[i].equals("x")||postfixOperations[i].equals("t")){
                 tempCalculation.push(String.valueOf(x));
                 //replace letter with number
             }else if(postfixOperations[i].equals("y")){
