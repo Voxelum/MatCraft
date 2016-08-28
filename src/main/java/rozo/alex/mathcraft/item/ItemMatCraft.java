@@ -258,7 +258,7 @@ public class ItemMatCraft extends ItemSign{
             return;
         }
 
-        if(TDG.getPostfixOperations()==null){
+        if(TDG.getPostfixOperations()==null||TDG.getResults()==null){
             playerIn.addChatComponentMessage(new TextComponentString("Fail to Graph. The expression of the function might be wrong."));
         }else{
             IBlockState newState=determineTexture(inps[3], playerIn);//determine the texture of the graph
