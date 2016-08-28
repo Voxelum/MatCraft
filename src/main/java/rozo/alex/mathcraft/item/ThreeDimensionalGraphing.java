@@ -131,7 +131,7 @@ public class ThreeDimensionalGraphing {
     }
 
     //The expression of function is organized in the method
-    //some checkes for illegal expression are done
+    //some checks for illegal expression are done
     //if there is an illegal expression, the method will return null, and PRINT the error.
     //no exceptions will be thrown
     private String[] makePostfixOperation(String operations) {
@@ -152,8 +152,8 @@ public class ThreeDimensionalGraphing {
             }//check if there is any illegal chars
             if((ch=='.')||(isNumeric(String.valueOf(ch)) && i!=0)){
                 //if the next char is a number and it is not the first one
-
-                if(isLegalParameter(tempCh.peek())&&isNumeric(String.valueOf(ch))){
+                if((isLegalParameter(tempCh.peek()))&&isNumeric(String.valueOf(ch))){
+                //if((isLegalParameter(tempCh.peek()))||isLegalLongOperation(tempCh.peek())&&isNumeric(String.valueOf(ch))){
                     tempCh.push("*");
                     //handle the case i.e. x6+y5
                     //make it x*6+y*5
@@ -182,6 +182,8 @@ public class ThreeDimensionalGraphing {
                         //make it 6*x+5*y
                     }
                 }
+
+                //replaceLongOperations(ch,tempCh,operations);
 
                 if(ch == '-' && (isNumeric(tempCh.peek())||isLegalParameter(String.valueOf(ch)))){
                     tempCh.push("-");
@@ -241,11 +243,11 @@ public class ThreeDimensionalGraphing {
             }else if(temp.equals("(")){
                 numberOfLeftBracket++;//count the number of left bracket
             }else if(temp.equals(")")){
-                if(!operations.isEmpty()){
+                while (!operations.isEmpty()){
                     tempCh.push(operations.pop());
                 }
             }else if(isPriorityOperation(temp)){
-                operations.push(temp);
+                    operations.push(temp);
             }else if(numberOfLeftBracket!=0){
                 operations.push(temp);
                 numberOfLeftBracket--;
@@ -254,9 +256,8 @@ public class ThreeDimensionalGraphing {
                 if(operations.isEmpty()){
                     operations.push(temp);
                 }else {
-
-                    while ((!operations.isEmpty())&&isPriorityOperation(operations.peek())) {
-                        System.out.print("  .  ");
+                    while (!operations.isEmpty()) {
+                    //while ((!operations.isEmpty())&&isPriorityOperation(operations.peek())) {
                         tempCh.push(operations.pop());
                     }
 
@@ -382,7 +383,7 @@ public class ThreeDimensionalGraphing {
                         break;
                     case '*':  tempCalculation.push(Double.toString(Second*first));
                         break;
-                    case '/':  ;
+                    case '/':
                         if (Second==0){
                             Second=Second+approximateLimitOfUndefine;
                             //approximate to handle undefined situations
@@ -398,9 +399,7 @@ public class ThreeDimensionalGraphing {
         return (int)Math.round(Double.parseDouble(tempCalculation.pop()));
     }
 
-    //public void printDiscreption(){
-    //    System.out.println(discription);
-    //}
+
 
     public String toString(){
         Queue<Integer> copyZ_values=new LinkedList<Integer>();

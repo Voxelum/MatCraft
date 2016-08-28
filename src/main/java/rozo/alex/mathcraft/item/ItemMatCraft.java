@@ -268,6 +268,13 @@ public class ItemMatCraft extends ItemSign{
             //System.out.println(TDG.toString());
            playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
            playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( "+String.valueOf(pos.getX())+", "+String.valueOf(pos.getY())+", "+String.valueOf(pos.getZ())+" )."));
+            String[] pfo=TDG.getPostfixOperations();
+            String s="";
+            for(int i=0;i<pfo.length;i++){
+                s=s+pfo[i];
+            }
+
+            playerIn.addChatComponentMessage(new TextComponentString(s));
             startTime = System.currentTimeMillis();
             int counter=0;
             while (!resultsCoordinates.isEmpty()){
@@ -279,7 +286,7 @@ public class ItemMatCraft extends ItemSign{
                 }//enforce the coordinates to be inside the world
                 int newX=pos.getX()+resultsCoordinates.poll();
                 int newZ=pos.getZ()+resultsCoordinates.poll();
-                System.out.println("("+newX+","+newY+","+newZ+")\n" );
+               // System.out.println("("+newX+","+newY+","+newZ+")\n" );
                 BlockPos newPos=new BlockPos(newX,newY,newZ);
                 world.setBlockState(newPos, newState);
                 counter++;
