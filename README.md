@@ -8,6 +8,14 @@ This uses the ThreeDemensionalGraphing class to graph in minecraft
 
 enter a equation and press done to see the results
 
-Here is the demostration video of this mod: https://youtu.be/V7X__XCwDZQ
+Can handle + - * / ^ log ln cos sin () e
 
-The same video is also uploaded below
+Also works for parametric functions(eg. x=cos t, y=sin t)
+
+Check out this video for demo : https://youtu.be/mpvCRSPtrAs
+
+Try this input:
+x^2+z^2
+(blank)
+(blank)
+(blank)
