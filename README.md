@@ -14,8 +14,15 @@ Also works for parametric functions(eg. x=cos t, y=sin t)
 
 Check out this video for demo : https://youtu.be/mpvCRSPtrAs
 
+
+
+
 Try this input:
-x^2+z^2\n
-\n(blank)
-\n(blank)
-\n(blank)
+
+First Line: x^2+z^2
+
+Second Line:(blank)
+
+Third Line:(blank)
+
+Fourth Line:(blank)
