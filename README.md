@@ -1,8 +1,8 @@
 # MatCraft
 
-This is a minecraft mod
+Minecraft mod for minecraft 1.9
 
-works in minecraft 1.9
+Thanks for the contribution from @Ci010, which solved a major bug in multithread implementation  
 
 This uses the ThreeDemensionalGraphing class to graph in minecraft
 
