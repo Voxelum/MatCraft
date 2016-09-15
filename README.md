@@ -14,7 +14,7 @@ Can handle + - * / ^ log ln cos sin () e
 
 Also works for parametric functions(eg. x=cos t, y=sin t)
 
-Check out this video for demo : https://youtu.be/mpvCRSPtrAs
+Check out this video for demo:  https://youtu.be/HTHZtQB6m0E 
 
 
 
