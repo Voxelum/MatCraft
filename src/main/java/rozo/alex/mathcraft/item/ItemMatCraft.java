@@ -3,8 +3,10 @@ package rozo.alex.mathcraft.item;
 import net.minecraft.block.BlockStandingSign;
 import net.minecraft.block.BlockWallSign;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockColored;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemSign;
 import net.minecraft.item.ItemStack;
@@ -29,6 +31,7 @@ public class ItemMatCraft extends ItemSign{
 
     private String localName= "MatCraft";
     private boolean isNew = true;
+    private final boolean isMultiThread=true;
 
     public ItemMatCraft()
     {
@@ -260,50 +263,78 @@ public class ItemMatCraft extends ItemSign{
 
         if(TDG.getPostfixOperations()==null||TDG.getResults()==null){
             playerIn.addChatComponentMessage(new TextComponentString("Fail to Graph. The expression of the function might be wrong."));
-        }else{
-            IBlockState newState=determineTexture(inps[3], playerIn);//determine the texture of the graph
+        }else {
+            IBlockState newState=null;
+            IBlockState[] newStates=null;
+            //determine the texture of the graph
+            newState = determineTexture(inps[3], playerIn);
+            newStates = applyWoolTexture();
+            String[] pfo = TDG.getPostfixOperations();
+            String s = "";
+            //print out the post fix operations
+            for (int i = 0; i < pfo.length; i++) {
+                s = s + pfo[i];
+            }
+            //print out the post fix operations
+            playerIn.addChatComponentMessage(new TextComponentString(s));
+
             //what blocks will be used
 
-           resultsCoordinates=TDG.getResults();
-            //System.out.println(TDG.toString());
-           playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
-           playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( "+String.valueOf(pos.getX())+", "+String.valueOf(pos.getY())+", "+String.valueOf(pos.getZ())+" )."));
-            String[] pfo=TDG.getPostfixOperations();
-            String s="";
-            for(int i=0;i<pfo.length;i++){
-                s=s+pfo[i];
-            }
+            if(isMultiThread) {
+                ThreadGeneratingBlocks TGB = new ThreadGeneratingBlocks(newState, world, TDG, playerIn, pos);
+                new Thread(TGB).start();
 
-            playerIn.addChatComponentMessage(new TextComponentString(s));
-            startTime = System.currentTimeMillis();
-            int counter=0;
-            while (!resultsCoordinates.isEmpty()){
-                int newY=pos.getY()+resultsCoordinates.poll();
-                if (newY>255){
-                   newY=255;
-                }else if(newY<=1){
-                    newY=1;
-                }//enforce the coordinates to be inside the world
-                int newX=pos.getX()+resultsCoordinates.poll();
-                int newZ=pos.getZ()+resultsCoordinates.poll();
-               // System.out.println("("+newX+","+newY+","+newZ+")\n" );
-                BlockPos newPos=new BlockPos(newX,newY,newZ);
-                world.setBlockState(newPos, newState);
-                counter++;
+                return;
             }
+            resultsCoordinates = TDG.getResults();
+            //System.out.println(TDG.toString());
+            playerIn.addChatComponentMessage(new TextComponentString("Start Graphing..."));
+            playerIn.addChatComponentMessage(new TextComponentString("The orgin coordinates is ( " + String.valueOf(pos.getX()) + ", " + String.valueOf(pos.getY()) + ", " + String.valueOf(pos.getZ()) + " )."));
+
+            startTime = System.currentTimeMillis();
+            int counter = 0;
+            BlockPos.MutableBlockPos mutPos=new BlockPos.MutableBlockPos();
+            while (!resultsCoordinates.isEmpty()) {
+                int newY = pos.getY() + resultsCoordinates.poll();
+                if (newY > 255) {
+                    newY = 255;
+                } else if (newY <= 1) {
+                    newY = 1;
+                }//enforce the coordinates to be inside the world
+                int newX = pos.getX() + resultsCoordinates.poll();
+                int newZ = pos.getZ() + resultsCoordinates.poll();
+                // System.out.println("("+newX+","+newY+","+newZ+")\n" );
+                mutPos.set(newX, newY, newZ);
+                if(inps[3].equals("grey shift")) {
+                    newState=newStates[newY/64];
+                }
+                world.setBlockState(mutPos, newState);
+                counter++;
+                }
 
             long et  = System.currentTimeMillis();
-            playerIn.addChatComponentMessage(new TextComponentString("Done Graphing. Takes "+(et - startTime)+"ms"));
-            playerIn.addChatComponentMessage(new TextComponentString(counter+" Blocks Added."+resultsCoordinates.size()));
+            //playerIn.addChatComponentMessage(new TextComponentString("Done Graphing. Takes "+(et - startTime)+"ms"));
+            //playerIn.addChatComponentMessage(new TextComponentString(counter+" Blocks Added."+resultsCoordinates.size()));
             /////
 
         }
+    }
+
+    private IBlockState[] applyWoolTexture() {
+        IBlockState[] newStates=new IBlockState[4];
+        newStates[0]=Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.WHITE);
+        newStates[1]=Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.SILVER);
+        newStates[2]=Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.GRAY);
+        newStates[3]=Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.BLACK);
+        return newStates;
     }
 
     //Determine the which block is going to be used
     private IBlockState determineTexture(String inp, EntityPlayer playerIn) {
 
         inp=inp.toLowerCase();
+
+
 
         if(inp.equals("black")||inp.equals("dark")||inp.equals("obsidian")){
             playerIn.addChatComponentMessage(new TextComponentString("Apply Obsidian Blocks."));
@@ -313,6 +344,63 @@ public class ItemMatCraft extends ItemSign{
         if(inp.equals("white")||inp.equals("quartz")){
             playerIn.addChatComponentMessage(new TextComponentString("Apply Quartz Blocks"));
             return Blocks.quartz_block.getDefaultState();
+        }
+
+        //wool colors
+        if(inp.equals("white wool")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply White Wool blocks."));
+            return Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.WHITE);
+        }
+
+        if(inp.equals("light grey wool")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Light Grey Wool blocks."));
+            return Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.SILVER);
+        }
+
+        if(inp.equals("grey wool")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Grey wool blocks."));
+            return Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.GRAY);
+        }
+
+        if(inp.equals("black wool")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Black Wool blocks."));
+            return Blocks.wool.getDefaultState().withProperty(BlockColored.COLOR, EnumDyeColor.BLACK);
+        }
+        //wool colors
+
+        if(inp.equals("red")||inp.equals("redstone")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Redstond Block Blocks."));
+            return Blocks.redstone_block.getDefaultState();
+        }
+
+        if(inp.equals("yellow")||inp.equals("glowing")||inp.equals("glowstone")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Glowstone Blocks."));
+            return Blocks.glowstone.getDefaultState();
+        }
+
+        if(inp.equals("blue")||inp.equals("lapis")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Lapis Blocks."));
+            return Blocks.lapis_block.getDefaultState();
+        }
+
+        if(inp.equals("green")||inp.equals("emerald")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Emerald Blocks."));
+            return Blocks.emerald_block.getDefaultState();
+        }
+
+        if(inp.equals("cyan")||inp.equals("diamond")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Diamond Blocks."));
+            return Blocks.diamond_block.getDefaultState();
+        }
+
+        //if(inp.equals("cyan")||inp.equals("diamond")){
+        //    playerIn.addChatComponentMessage(new TextComponentString("Apply Diamond Blocks."));
+        //    return Blocks.wool.getDefaultState().withProperty(EnumDyeColor.PINK,0);
+        //}
+
+        if(inp.equals("stone")||inp.equals("gray")||inp.equals("cobblestone")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Cobblestone Blocks."));
+            return Blocks.cobblestone.getDefaultState();
         }
 
         if(inp.equals("tnt")){
@@ -330,20 +418,18 @@ public class ItemMatCraft extends ItemSign{
             return Blocks.planks.getDefaultState();
         }
 
-        if(inp.equals("red")||inp.equals("redstone")){
-            playerIn.addChatComponentMessage(new TextComponentString("Apply Redstond Block Blocks."));
-            return Blocks.redstone_block.getDefaultState();
+        if(inp.equals("water")){
+            playerIn.addChatComponentMessage(new TextComponentString("Apply Waters. Dangerous."));
+            return Blocks.water.getDefaultState();
         }
 
-        if(inp.equals("stone")||inp.equals("gray")||inp.equals("cobblestone")){
-            playerIn.addChatComponentMessage(new TextComponentString("Apply Cobblestone Blocks."));
-            return Blocks.cobblestone.getDefaultState();
-        }
 
-        if(inp.equals("yellow")||inp.equals("glowing")||inp.equals("glowstone")){
-            playerIn.addChatComponentMessage(new TextComponentString("Apply Glowstone Blocks."));
-            return Blocks.glowstone.getDefaultState();
-        }
+
+
+
+
+
+
 
         if(inp.equals("gold")||inp.equals("golden")){
             playerIn.addChatComponentMessage(new TextComponentString("Apply Gold Blocks."));
